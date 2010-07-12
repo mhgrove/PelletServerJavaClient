@@ -1,0 +1,161 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2010 Clark & Parsia, LLC. <http://www.clarkparsia.com>
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<project name="Pellet Server Java Client" default="dist" basedir=".">
+	<description>
+        Clark &amp; Parsia's Pellet Server Java Client
+    </description>
+
+	<!-- Global Properties -->
+	<property name="core" location="core" />
+	<property name="test" location="test" />
+	<property name="examples" location="examples" />
+	
+	<property name="core.src" location="${core}/src" />
+	<property name="test.src" location="${test}/src" />
+	<property name="examples.src" location="${examples}/src" />
+	
+	<property name="core.lib" location="${core}/lib" />
+	<property name="test.lib" location="${test}/lib" />
+	<property name="examples.lib" location="${examples}/lib" />
+
+	<property name="build" location="build" />
+	<property name="build.core" location="${build}/core" />
+	<property name="build.test" location="${build}/test" />
+	
+	<property name="dist" location="dist" />
+	<property name="dist.src" location="${dist}/src" />
+	<property name="dist.examples" location="${dist}/examples" />
+	<property name="dist.lib" location="${dist}/lib" />
+
+	<property name="project.name" value="pelletserver-client" />
+	<property name="project.version" value="0.1" />
+	
+	
+	<property name="test.class.name" value="com.clarkparsia.pelletserver.client.test.PelletServerClientTests" />
+	
+	<property name="file.name" value="${project.name}-${project.version}" />
+
+	<path id="project.class.path">
+		<pathelement location="${build.core}" />
+		<pathelement location="${build.test}" />
+		
+		<fileset dir="${core.lib}">
+			<include name="**/*.jar"/>
+			<exclude name="**/${project.name}*.jar"/>
+		</fileset>
+		<fileset dir="${test.lib}">
+			<include name="**/*.jar"/>
+			<exclude name="**/${project.name}*.jar"/>
+		</fileset>
+	</path>
+	
+	
+	<target name="init">
+		<pathconvert targetos="unix" property="classpath" refid="project.class.path" />
+		<echo>CLASSPATH=${classpath}</echo>
+		<!-- Create the time stamp -->
+		<tstamp/>
+		<!-- Create the build directory structure used by compile -->
+		<mkdir dir="${build.core}"/>
+		<mkdir dir="${build.test}"/>
+	</target>
+
+	<target name="compile-core" depends="init"
+            description="Compile Core source files." >
+		<javac source="1.5" target="1.5" srcdir="${core.src}" destdir="${build.core}" debug="yes" deprecation="yes">
+			<classpath refid="project.class.path"/>
+		</javac>
+	</target>
+	
+	<target name="compile-test" depends="init,compile-core"
+	            description="Compile Test-related source files." >
+		<javac source="1.5" target="1.5" srcdir="${test.src}" destdir="${build.test}" debug="yes" deprecation="yes">
+			<classpath refid="project.class.path"/>
+		</javac>
+	</target>
+
+	<target name="compile" depends="init,compile-core,compile-test"
+		            description="Compile source files." />
+
+	<target name="build" depends="compile"
+            description="Compile sources (there's nothing more to do).">
+	</target>
+	
+	<target name="test" depends="build">
+		<junit maxmemory="1536m" fork="yes" haltonfailure="false" dir="${basedir}"
+			failureproperty="corleone.junit.failure">
+			<test name="${test.class.name}"/>
+			<formatter type="plain" usefile="false"/>
+			<formatter type="xml" usefile="true" if="corleone.junit.formatter.xml"/>
+			<classpath refid="project.class.path"/>
+			<jvmarg value="-enableassertions" />
+		</junit>
+		<fail if="corleone.junit.failure" message="JUnit test failure."/>
+	</target>
+
+	<target name="distfiles">
+		<!-- Copy in lib files -->
+		<mkdir dir="${dist.lib}" />
+		<mkdir dir="${dist.examples}" />
+		
+		<copy todir="${dist.lib}">
+			<fileset dir="${core.lib}">
+				<include name="**/*.jar" />
+				<exclude name="**/${project.name}*.jar"/>
+			</fileset>
+			<fileset dir="${test.lib}">
+				<include name="**/*.jar" />
+				<exclude name="**/${project.name}*.jar"/>
+			</fileset>
+		</copy>
+		
+		<copy todir="${dist.examples}">
+			<fileset dir="${examples.src}" />
+		</copy>
+
+	</target>
+
+	<target name="dist" depends="build,distfiles"
+            description="Generate a distribution" >
+		<mkdir dir="${dist.src}" />
+		
+		<jar jarfile="${dist.src}/${file.name}.core.src.jar" basedir="${core.src}"/>
+		<jar jarfile="${dist.src}/${file.name}.test.src.jar" basedir="${test.src}"/>
+
+		<jar jarfile="${dist}/${file.name}.core.jar">
+			<fileset dir="${build.core}">
+				<include name="**"/>
+			</fileset>
+		</jar>
+		
+	</target>
+
+	<target name="clean" description="Clean up build files">
+		<delete dir="${build}" />
+		<delete dir="${dist}" />
+	</target>
+
+	<target name="dist-zip" depends="dist">
+		<zip destfile="${dist}/${project.name}-${DSTAMP}.zip">
+			<zipfileset dir="${dist}">
+				<include name="**/*"/>
+				<exclude name="**/src/**"/>
+				<exclude name="**/*.zip"/>
+			</zipfileset>
+		</zip>
+	</target>
+</project>
