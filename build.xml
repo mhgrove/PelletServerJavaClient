@@ -169,7 +169,7 @@
 	</target>
 
 	<target name="dist-zip" depends="dist">
-		<zip destfile="${dist}/${project.name}-${DSTAMP}.zip">
+		<zip destfile="${dist}/${project.name}-${project.version}-${DSTAMP}.zip">
 			<zipfileset prefix="${project.name}" dir="${dist}">
 				<include name="**/*"/>
 				<exclude name="**/*.zip"/>
