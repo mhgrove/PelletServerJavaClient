@@ -40,14 +40,16 @@
 	<property name="dist.src" location="${dist}/src" />
 	<property name="dist.examples" location="${dist}/examples" />
 	<property name="dist.lib" location="${dist}/lib" />
+	<property name="dist.javadoc.dir" location="${dist}/javadoc"/>
 
 	<property name="project.name" value="pelletserver-client" />
 	<property name="project.version" value="0.1" />
-	
-	
+
 	<property name="test.class.name" value="com.clarkparsia.pelletserver.client.test.PelletServerClientTests" />
 	
 	<property name="file.name" value="${project.name}-${project.version}" />
+	
+	<property name="logging" value="${core.src}/logging.properties" />
 
 	<path id="project.class.path">
 		<pathelement location="${build.core}" />
@@ -93,6 +95,9 @@
 
 	<target name="build" depends="compile"
             description="Compile sources (there's nothing more to do).">
+		<copy todir="${build.core}">
+			<fileset file="${logging}" />
+		</copy>
 	</target>
 	
 	<target name="test" depends="build">
@@ -129,14 +134,14 @@
 
 	</target>
 
-	<target name="dist" depends="build,distfiles"
+	<target name="dist" depends="build,distfiles,javadoc"
             description="Generate a distribution" >
 		<mkdir dir="${dist.src}" />
 		
 		<jar jarfile="${dist.src}/${file.name}.core.src.jar" basedir="${core.src}"/>
 		<jar jarfile="${dist.src}/${file.name}.test.src.jar" basedir="${test.src}"/>
 
-		<jar jarfile="${dist}/${file.name}.core.jar">
+		<jar jarfile="${dist}/lib/${file.name}.core.jar">
 			<fileset dir="${build.core}">
 				<include name="**"/>
 			</fileset>
@@ -149,11 +154,24 @@
 		<delete dir="${dist}" />
 	</target>
 
+	<target name="javadoc" depends="build">
+		<javadoc destdir="${dist.javadoc.dir}" access="public" use="true" notree="false"
+			nonavbar="false" noindex="false" splitindex="true" author="true"
+			version="true" nodeprecatedlist="false" nodeprecated="false"
+			packagenames="com.clarkparsia.*"
+			doctitle="${project.name}-${project.version}"
+			bottom="Copyright (c) 2010 Clark &amp; Parsia, LLC (http://clarkparsia.com). All Rights Reserved.">
+			<classpath refid="project.class.path"/>
+			<fileset dir="${core.src}" defaultexcludes="yes">
+				<include name="**/*.java"/>
+			</fileset>
+		</javadoc>
+	</target>
+
 	<target name="dist-zip" depends="dist">
 		<zip destfile="${dist}/${project.name}-${DSTAMP}.zip">
-			<zipfileset dir="${dist}">
+			<zipfileset prefix="${project.name}" dir="${dist}">
 				<include name="**/*"/>
-				<exclude name="**/src/**"/>
 				<exclude name="**/*.zip"/>
 			</zipfileset>
 		</zip>

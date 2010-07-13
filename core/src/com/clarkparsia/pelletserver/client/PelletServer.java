@@ -11,6 +11,7 @@
 
 package com.clarkparsia.pelletserver.client;
 
+import java.io.InputStream;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
@@ -18,7 +19,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-
+import java.util.logging.LogManager;
 
 import com.clarkparsia.pelletserver.client.utils.PelletServerUtils;
 import com.clarkparsia.pelletserver.client.utils.RequestUtils;
@@ -36,6 +37,31 @@ import com.google.common.collect.MutableClassToInstanceMap;
  * 
  */
 public class PelletServer implements Iterable<KnowledgeBase> {
+
+	static {
+		//Load default logging.properties file
+		String logClass = System.getProperty("java.util.logging.config.class");
+		String logFile = System.getProperty("java.util.logging.config.file");
+
+		if (logClass == null && logFile == null) {
+			URL logURL = PelletServer.class.getClassLoader().getResource("/logging.properties");
+
+			if (logURL == null) {
+				logURL = PelletServer.class.getClassLoader().getResource("logging.properties");
+			}
+
+			if (logURL != null) {
+				try {
+					InputStream stream = logURL.openStream();
+					LogManager.getLogManager().readConfiguration(stream);
+					stream.close();
+				}
+				catch (Exception e) {
+					// Do nothing
+				}
+			}
+		}
+	}
 
 	/**
 	 * A Map from name to {@link KnowledgeBase}s
